@@ -763,36 +763,39 @@ Crypto Health uses multiple security layers.
 
 ---
 
-# Encryption
+## Encryption
 
-Medical records are sensitive information and should not be stored as publicly readable files.
+Medical records contain highly sensitive personal information and must never be stored in plain text.
 
-Conceptually:
+### Encryption Workflow
 
 ```text
 Medical Report
       |
       v
-Encryption
+Encrypt using Patient's Public Key
       |
       v
-Encrypted File
+Hospital Digitally Signs Report
+      |
+      v
+Encrypted Medical File
       |
       v
 Supabase Storage
 ```
 
-The final production cryptographic design must clearly define:
+### Key Ownership
 
-* Encryption algorithm
-* Key generation
-* Key ownership
-* Key storage
-* Key rotation
-* Encryption/decryption boundaries
-* Recovery procedure
+Crypto Health follows a **patient-controlled encryption model**.
 
-These details are implementation decisions and should be finalized before production deployment.
+- Every patient has a cryptographic key pair (Public Key and Private Key).
+- The patient's **Public Key** is used by the hospital to encrypt medical reports before storage.
+- The patient's **Private Key** remains under the patient's control and is never stored in plain text by the platform.
+- Only authorized access, approved by the patient through a temporary QR code or one-time access token, allows the report to be securely decrypted for viewing.
+- Even if the storage server or database is compromised, encrypted medical reports remain unreadable without proper authorization.
+
+This approach ensures that patients retain ownership and control of access to their medical records while hospitals can securely upload and share authenticated reports.
 
 ---
 
