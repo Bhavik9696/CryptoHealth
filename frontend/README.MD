@@ -22,7 +22,7 @@ The frontend must provide a clean, responsive, accessible, and security-consciou
 * Profile management
 * Error and loading states
 * Role-based UI
-* Secure session handling
+* Secure session 
 
 The project proposal specifies **React, Tailwind CSS, and shadcn/ui** for the hospital web portal.
 
