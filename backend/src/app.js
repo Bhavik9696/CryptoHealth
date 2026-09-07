@@ -13,6 +13,7 @@ const { errorHandler } = require('./middleware/errorHandler');
 // Import routes
 const authRoutes = require('./routes/auth.routes');
 const hospitalRoutes = require('./routes/hospital.routes');
+const doctorRoutes = require('./routes/doctor.routes');
 
 const app = express();
 
@@ -58,9 +59,9 @@ app.get('/api/health', (req, res) => {
 // --- API Routes ---
 app.use('/api/auth', authRoutes);
 app.use('/api/hospitals', hospitalRoutes);
+app.use('/api/doctors', doctorRoutes);
 
 // Future route registrations:
-// app.use('/api/doctors', doctorRoutes);
 // app.use('/api/patient-links', patientLinkRoutes);
 // app.use('/api/reports', reportRoutes);
 // app.use('/api/access-grants', accessGrantRoutes);
