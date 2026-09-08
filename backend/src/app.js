@@ -14,6 +14,7 @@ const { errorHandler } = require('./middleware/errorHandler');
 const authRoutes = require('./routes/auth.routes');
 const hospitalRoutes = require('./routes/hospital.routes');
 const doctorRoutes = require('./routes/doctor.routes');
+const patientLinkRoutes = require('./routes/patientLink.routes');
 
 const app = express();
 
@@ -60,9 +61,9 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/doctors', doctorRoutes);
+app.use('/api/patient-links', patientLinkRoutes);
 
 // Future route registrations:
-// app.use('/api/patient-links', patientLinkRoutes);
 // app.use('/api/reports', reportRoutes);
 // app.use('/api/access-grants', accessGrantRoutes);
 // app.use('/api/access-tokens', accessTokenRoutes);
