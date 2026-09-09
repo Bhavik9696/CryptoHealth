@@ -8,9 +8,6 @@ const { ValidationError } = require('../utils/errors');
  * Returns middleware that validates the request body against the given Joi schema.
  * @param {import('joi').ObjectSchema} schema - Joi schema to validate against
  * @returns {Function} Express middleware
- *
- * Usage:
- *   router.post('/register', validate(registerSchema), controller.register);
  */
 function validate(schema) {
   return (req, res, next) => {
@@ -24,7 +21,6 @@ function validate(schema) {
       return next(new ValidationError('Validation failed', messages));
     }
 
-    // Replace body with validated and sanitized data
     req.body = value;
     next();
   };
