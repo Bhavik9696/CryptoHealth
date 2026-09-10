@@ -3,6 +3,24 @@ import { authService } from '../services/auth.service.js';
 import { sendSuccess, sendError } from '../utils/response.js';
 
 export class AuthController {
+  async register(req: Request, res: Response): Promise<void> {
+    const { email, password, fullName, phone, role } = req.body;
+
+    try {
+      const result = await authService.register(email, password, fullName, role, phone, req.ip);
+      sendSuccess(res, result, 'User registered successfully', 201);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Registration failed';
+
+      if (message.includes('already exists')) {
+        sendError(res, message, 'CONFLICT', 409);
+        return;
+      }
+
+      sendError(res, message, 'REGISTRATION_ERROR', 400);
+    }
+  }
+
   async getMe(req: Request, res: Response): Promise<void> {
     if (!req.user) {
       sendError(res, 'Unauthenticated', 'UNAUTHORIZED', 401);

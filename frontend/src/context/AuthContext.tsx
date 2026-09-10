@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { supabase } from '@/lib/supabase'
 import { authService } from '@/services/auth.service'
 import type { AuthContextType, User, Profile } from '@/types/auth'
 
@@ -21,24 +20,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (storedProfile) {
           setProfile(JSON.parse(storedProfile))
         }
+        // Verify session is still valid by fetching profile from backend
         await fetchProfile()
         return
       } catch (err) {
-        console.error('Failed to parse cached user', err)
+        console.error('Failed to restore auth session', err)
+        // Clear invalid stored data
+        localStorage.removeItem('crypto_health_token')
+        localStorage.removeItem('crypto_health_user')
+        localStorage.removeItem('crypto_health_profile')
       }
     }
 
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        setUser(session.user as User)
-        await fetchProfile()
-        return
-      }
-    } catch {
-      // ignore
-    }
-
+    // No valid stored session
     setUser(null)
     setProfile(null)
     setLoading(false)
@@ -47,31 +41,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     checkAuth()
 
+    // Listen for auth changes from authService (login/logout/register)
     const handleAuthChange = () => {
       checkAuth()
     }
     window.addEventListener('crypto_health_auth_change', handleAuthChange)
 
-    let subscription: { unsubscribe: () => void } | null = null
-    try {
-      const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
-        if (session?.user) {
-          setUser(session.user as User)
-          fetchProfile()
-        } else if (!localStorage.getItem('crypto_health_token')) {
-          setUser(null)
-          setProfile(null)
-          setLoading(false)
-        }
-      })
-      subscription = data.subscription
-    } catch {
-      // ignore
-    }
-
     return () => {
       window.removeEventListener('crypto_health_auth_change', handleAuthChange)
-      subscription?.unsubscribe()
     }
   }, [])
 
@@ -79,8 +56,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const profileData = await authService.getProfile()
       setProfile(profileData)
+
+      // Also update user from profile data
+      if (profileData) {
+        setUser({
+          id: profileData.id || profileData.user_id,
+          email: profileData.email,
+          created_at: profileData.created_at,
+        })
+      }
     } catch {
-      // Profile fetch may fail if backend isn't running; gracefully degrade
+      // Profile fetch failed — token may be expired
+      // Clear auth state so ProtectedRoute redirects to login
+      localStorage.removeItem('crypto_health_token')
+      localStorage.removeItem('crypto_health_user')
+      localStorage.removeItem('crypto_health_profile')
+      setUser(null)
       setProfile(null)
     } finally {
       setLoading(false)
@@ -89,6 +80,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signOut() {
     await authService.signOut()
+    setUser(null)
+    setProfile(null)
   }
 
   return (

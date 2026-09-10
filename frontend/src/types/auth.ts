@@ -18,7 +18,7 @@ export interface Profile {
   created_at: string;
 }
 
-export type UserRole = 'patient' | 'doctor' | 'hospital' | 'admin';
+export type UserRole = 'patient' | 'doctor' | 'hospital_admin' | 'admin';
 
 export interface AuthContextType {
   user: User | null;
@@ -30,6 +30,14 @@ export interface AuthContextType {
 export interface LoginCredentials {
   email: string;
   password: string;
+}
+
+export interface RegisterCredentials {
+  email: string;
+  password: string;
+  fullName: string;
+  phone?: string;
+  role: 'patient' | 'doctor' | 'hospital_admin';
 }
 
 export interface ForgotPasswordForm {

@@ -35,7 +35,7 @@ const env = {
   SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
   JWT_SECRET: process.env.JWT_SECRET,
   STORAGE_BUCKET: process.env.STORAGE_BUCKET || 'medical-reports',
-  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
   MASTER_ENCRYPTION_KEY: process.env.MASTER_ENCRYPTION_KEY,
 };
 

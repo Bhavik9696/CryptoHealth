@@ -1,6 +1,5 @@
 import axios from 'axios'
 import { API_URL } from '@/lib/constants'
-import { supabase } from '@/lib/supabase'
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -10,18 +9,9 @@ const apiClient = axios.create({
   },
 })
 
-// Attach access token to every request (localStorage or Supabase)
+// Attach access token to every request from localStorage
 apiClient.interceptors.request.use(async (config) => {
-  let token = localStorage.getItem('crypto_health_token')
-  if (!token) {
-    try {
-      const { data } = await supabase.auth.getSession()
-      token = data.session?.access_token || null
-    } catch {
-      // ignore
-    }
-  }
-
+  const token = localStorage.getItem('crypto_health_token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -36,11 +26,6 @@ apiClient.interceptors.response.use(
       localStorage.removeItem('crypto_health_token')
       localStorage.removeItem('crypto_health_user')
       localStorage.removeItem('crypto_health_profile')
-      try {
-        await supabase.auth.signOut()
-      } catch {
-        // ignore
-      }
       window.location.href = '/login'
     }
     return Promise.reject(error)

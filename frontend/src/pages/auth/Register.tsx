@@ -58,7 +58,7 @@ const ROLE_OPTIONS = [
     icon: '🩺',
   },
   {
-    value: 'hospital' as const,
+    value: 'hospital_admin' as const,
     label: 'Hospital',
     description: 'Upload and issue medical reports',
     icon: '🏥',
@@ -89,11 +89,11 @@ const registerSchema = z
       .regex(/^[+]?[\d\s()-]{7,20}$/, 'Please enter a valid phone number')
       .or(z.literal(''))
       .optional(),
-    role: z.enum(['patient', 'doctor', 'hospital'], {
-      errorMap: () => ({ message: 'Please select an account type' }),
+    role: z.enum(['patient', 'doctor', 'hospital_admin'], {
+      error: 'Please select an account type',
     }),
-    terms: z.literal(true, {
-      errorMap: () => ({ message: 'You must acknowledge the terms' }),
+    terms: z.boolean().refine((v) => v === true, {
+      message: 'You must acknowledge the terms',
     }),
   })
   .refine((d) => d.password === d.confirmPassword, {
@@ -147,7 +147,7 @@ export default function Register() {
         typeof err === 'object' &&
         'response' in err
       ) {
-        const axiosErr = err as { response?: { status?: number; data?: { error?: { message?: string } } } }
+        const axiosErr = err as { response?: { status?: number; data?: { message?: string } } }
         if (axiosErr.response?.status === 429) {
           setServerError('Too many requests. Please wait a moment and try again.')
           return
@@ -156,7 +156,7 @@ export default function Register() {
           setServerError('An account with this email already exists. Please sign in instead.')
           return
         }
-        const serverMessage = axiosErr.response?.data?.error?.message
+        const serverMessage = axiosErr.response?.data?.message
         if (serverMessage) {
           setServerError(serverMessage)
           return
