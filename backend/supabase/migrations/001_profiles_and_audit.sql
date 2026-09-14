@@ -86,6 +86,15 @@ CREATE TRIGGER profiles_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();
 
+-- 8. Grant table privileges to roles
+-- (RLS policies filter rows, but roles still need base-level table access)
+GRANT ALL ON public.profiles TO service_role;
+GRANT ALL ON public.audit_logs TO service_role;
+GRANT SELECT, UPDATE ON public.profiles TO authenticated;
+GRANT SELECT ON public.audit_logs TO authenticated;
+GRANT SELECT ON public.profiles TO anon;
+GRANT SELECT ON public.audit_logs TO anon;
+
 -- ============================================================
 -- DONE! Phase 1 tables are ready.
 -- ============================================================

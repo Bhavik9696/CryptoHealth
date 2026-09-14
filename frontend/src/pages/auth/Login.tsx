@@ -38,12 +38,12 @@ export default function Login() {
         typeof err === 'object' &&
         'response' in err
       ) {
-        const axiosErr = err as { response?: { status?: number; data?: { error?: { message?: string } } } }
+        const axiosErr = err as { response?: { status?: number; data?: { message?: string } } }
         if (axiosErr.response?.status === 429) {
           setAuthError('Too many login attempts. Please wait a moment and try again.')
           return
         }
-        const serverMessage = axiosErr.response?.data?.error?.message
+        const serverMessage = axiosErr.response?.data?.message
         if (serverMessage) {
           setAuthError(serverMessage)
           return
