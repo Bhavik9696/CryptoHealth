@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
 import { useAuth } from '@/context/AuthContext'
 import { User, Shield, Building2, BadgeCheck, Save } from 'lucide-react'
 import { getInitials } from '@/lib/utils'

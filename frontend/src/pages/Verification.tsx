@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { ShieldCheck, Search, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { ShieldCheck, Search, CheckCircle, XCircle } from 'lucide-react'
 import { verificationService } from '@/services/verification.service'
 import type { VerificationResult } from '@/types/report'
 

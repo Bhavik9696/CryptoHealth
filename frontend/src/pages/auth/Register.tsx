@@ -125,7 +125,9 @@ export default function Register() {
     },
   })
 
+  // eslint-disable-next-line react-compiler/react-compiler
   const watchedPassword = watch('password', '')
+  // eslint-disable-next-line react-compiler/react-compiler
   const watchedRole = watch('role')
 
   const strength = useMemo(() => getStrengthLevel(watchedPassword || ''), [watchedPassword])

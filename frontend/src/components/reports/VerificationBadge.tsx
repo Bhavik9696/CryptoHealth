@@ -9,10 +9,10 @@ interface VerificationBadgeProps {
 }
 
 const config: Record<ReportStatus, { icon: React.ElementType; label: string; classes: string }> = {
-  VERIFIED: { icon: CheckCircle, label: 'Verified', classes: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' },
-  PENDING: { icon: Clock, label: 'Pending', classes: 'text-amber-400 bg-amber-500/10 border-amber-500/30' },
-  INVALID: { icon: XCircle, label: 'Invalid', classes: 'text-red-400 bg-red-500/10 border-red-500/30' },
-  REVOKED: { icon: MinusCircle, label: 'Revoked', classes: 'text-slate-400 bg-slate-500/10 border-slate-500/30' },
+  VERIFIED: { icon: CheckCircle, label: 'Verified', classes: 'text-teal-700 bg-teal-50 border-teal-200' },
+  PENDING: { icon: Clock, label: 'Pending', classes: 'text-amber-700 bg-amber-50 border-amber-200' },
+  INVALID: { icon: XCircle, label: 'Invalid', classes: 'text-red-700 bg-red-50 border-red-200' },
+  REVOKED: { icon: MinusCircle, label: 'Revoked', classes: 'text-slate-700 bg-slate-100 border-slate-200' },
 }
 
 export function VerificationBadge({ status, showText = true, size = 'md' }: VerificationBadgeProps) {

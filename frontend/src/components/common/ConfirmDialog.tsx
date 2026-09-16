@@ -28,12 +28,12 @@ export function ConfirmDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
         onClick={onCancel}
         aria-hidden="true"
       />
       <div
-        className="relative bg-slate-900 border border-slate-700 rounded-xl p-6 w-full max-w-md shadow-2xl"
+        className="relative bg-white border border-slate-200 rounded-xl p-6 w-full max-w-md shadow-2xl"
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-title"
@@ -41,19 +41,19 @@ export function ConfirmDialog({
       >
         <button
           onClick={onCancel}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white"
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
           aria-label="Close dialog"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="flex items-start gap-4">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${danger ? 'bg-red-500/15' : 'bg-amber-500/15'}`}>
-            <AlertTriangle className={`w-5 h-5 ${danger ? 'text-red-400' : 'text-amber-400'}`} />
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${danger ? 'bg-red-50' : 'bg-amber-50'}`}>
+            <AlertTriangle className={`w-5 h-5 ${danger ? 'text-red-600' : 'text-amber-600'}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 id="confirm-title" className="text-white font-semibold text-base mb-1">{title}</h2>
-            <p id="confirm-desc" className="text-slate-400 text-sm">{description}</p>
+            <h2 id="confirm-title" className="text-slate-900 font-semibold text-base mb-1">{title}</h2>
+            <p id="confirm-desc" className="text-slate-500 text-sm">{description}</p>
           </div>
         </div>
 
@@ -61,17 +61,17 @@ export function ConfirmDialog({
           <button
             onClick={onCancel}
             disabled={loading}
-            className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium transition-colors disabled:opacity-50"
+            className="px-4 py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
           >
             {cancelLabel}
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className={`px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm ${
               danger
-                ? 'bg-red-600 hover:bg-red-500'
-                : 'bg-sky-500 hover:bg-sky-400'
+                ? 'bg-red-600 hover:bg-red-700'
+                : 'bg-teal-600 hover:bg-teal-700'
             }`}
           >
             {loading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}

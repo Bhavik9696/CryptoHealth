@@ -52,18 +52,18 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   }
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-slate-900 border-r border-slate-800">
+    <div className="flex flex-col h-full bg-white border-r border-slate-200 shadow-sm">
       {/* Logo */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-slate-800">
+      <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-500 to-cyan-400 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center shadow-inner">
             <ShieldCheck className="w-5 h-5 text-white" />
           </div>
-          <span className="text-white font-semibold text-lg tracking-tight">CryptoHealth</span>
+          <span className="text-slate-900 font-bold text-lg tracking-tight">CryptoHealth</span>
         </div>
         <button
           onClick={onClose}
-          className="lg:hidden text-slate-400 hover:text-white p-1 rounded-md"
+          className="lg:hidden text-slate-400 hover:text-slate-600 p-1 rounded-md"
           aria-label="Close sidebar"
         >
           <X className="w-5 h-5" />
@@ -81,8 +81,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
                 isActive
-                  ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  ? 'bg-teal-50 text-teal-700 border border-teal-100 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               )
             }
           >
@@ -93,7 +93,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-slate-800 p-4 space-y-2">
+      <div className="border-t border-slate-200 p-4 space-y-2">
         <NavLink
           to="/profile"
           onClick={onClose}
@@ -101,8 +101,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             cn(
               'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
               isActive
-                ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-teal-50 text-teal-700 border border-teal-100 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
             )
           }
         >
@@ -111,7 +111,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         </NavLink>
         <button
           onClick={handleSignOut}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-150"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 transition-all duration-150"
         >
           <LogOut size={18} />
           Sign Out

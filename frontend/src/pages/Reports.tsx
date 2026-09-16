@@ -43,12 +43,12 @@ export default function Reports() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-white text-xl font-bold">Medical Reports</h2>
-          <p className="text-slate-400 text-sm mt-0.5">{data?.total ?? 0} total reports</p>
+          <h2 className="text-slate-900 text-xl font-bold">Medical Reports</h2>
+          <p className="text-slate-500 text-sm mt-0.5">{data?.total ?? 0} total reports</p>
         </div>
         <button
           onClick={() => navigate('/reports/upload')}
-          className="flex items-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
         >
           <Upload className="w-4 h-4" />
           Upload Report
@@ -67,8 +67,8 @@ export default function Reports() {
               onClick={() => { setStatus(opt.value); setPage(1) }}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 status === opt.value
-                  ? 'bg-sky-500 text-white'
-                  : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+                  ? 'bg-teal-600 text-white shadow-sm border border-teal-600'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
               {opt.label}
@@ -94,14 +94,14 @@ export default function Reports() {
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between pt-2">
-              <p className="text-slate-400 text-sm">Page {page} of {totalPages}</p>
+              <p className="text-slate-500 text-sm">Page {page} of {totalPages}</p>
               <div className="flex gap-2">
                 <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
-                  className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white disabled:opacity-40 transition-colors" aria-label="Previous page">
+                  className="p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 disabled:opacity-40 transition-colors shadow-sm" aria-label="Previous page">
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                  className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white disabled:opacity-40 transition-colors" aria-label="Next page">
+                  className="p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 disabled:opacity-40 transition-colors shadow-sm" aria-label="Next page">
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>

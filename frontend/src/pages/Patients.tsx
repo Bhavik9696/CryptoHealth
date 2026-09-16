@@ -26,8 +26,8 @@ export default function Patients() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-white text-xl font-bold">Patients</h2>
-          <p className="text-slate-400 text-sm mt-0.5">{data?.total ?? 0} total patients</p>
+          <h2 className="text-slate-900 text-xl font-bold">Patients</h2>
+          <p className="text-slate-500 text-sm mt-0.5">{data?.total ?? 0} total patients</p>
         </div>
       </div>
 
@@ -56,12 +56,12 @@ export default function Patients() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between pt-2">
-              <p className="text-slate-400 text-sm">Page {page} of {totalPages}</p>
+              <p className="text-slate-500 text-sm">Page {page} of {totalPages}</p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
                   aria-label="Previous page"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -69,7 +69,7 @@ export default function Patients() {
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
                   aria-label="Next page"
                 >
                   <ChevronRight className="w-4 h-4" />

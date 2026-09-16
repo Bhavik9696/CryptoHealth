@@ -19,7 +19,7 @@ export default function Dashboard() {
     queryFn: () => reportService.getReports({ limit: 10 }),
   })
 
-  const { data: logsData, isLoading: logsLoading } = useQuery({
+  const { data: logsData } = useQuery({
     queryKey: QUERY_KEYS.AUDIT_LOGS,
     queryFn: () => auditService.getLogs({ limit: 8 }),
   })
@@ -32,10 +32,10 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Welcome header */}
       <div>
-        <h2 className="text-white text-2xl font-bold">
+        <h2 className="text-slate-900 text-2xl font-bold">
           Welcome, {profile?.full_name ?? 'Doctor'} 👋
         </h2>
-        <p className="text-slate-400 text-sm mt-1 capitalize">{profile?.role} · {profile?.hospital_id ? 'Hospital Portal' : 'CryptoHealth'}</p>
+        <p className="text-slate-500 text-sm mt-1 capitalize">{profile?.role} · {profile?.hospital_id ? 'Hospital Portal' : 'CryptoHealth'}</p>
       </div>
 
       {/* Stat cards */}
@@ -63,10 +63,10 @@ export default function Dashboard() {
           <button
             key={action.path}
             onClick={() => navigate(action.path)}
-            className="bg-slate-800/60 border border-slate-700/60 hover:border-sky-500/50 hover:bg-slate-800 rounded-xl p-4 text-left transition-all duration-200 group"
+            className="bg-white border border-slate-200 hover:border-teal-500 hover:bg-slate-50 rounded-xl p-4 text-left shadow-sm transition-all duration-200 group"
           >
-            <action.icon className="w-5 h-5 text-slate-400 group-hover:text-sky-400 mb-2 transition-colors" />
-            <p className="text-white text-sm font-medium">{action.label}</p>
+            <action.icon className="w-5 h-5 text-slate-400 group-hover:text-teal-600 mb-2 transition-colors" />
+            <p className="text-slate-900 text-sm font-medium">{action.label}</p>
           </button>
         ))}
       </div>

@@ -2,7 +2,15 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-:root {
+@theme {
+  --color-brand-primary: #0F766E;
+  --color-brand-secondary: #2563EB;
+  --color-brand-bg: #F8FAFC;
+  --color-brand-text: #0F172A;
+  --color-brand-muted: #64748B;
+  --color-brand-success: #16A34A;
+  --color-brand-warning: #D97706;
+  --color-brand-error: #DC2626;
   --font-sans: 'Inter', system-ui, sans-serif;
 }
 
@@ -12,8 +20,8 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: #0f172a;
-  color: #f1f5f9;
+  background-color: var(--color-brand-bg);
+  color: var(--color-brand-text);
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
@@ -27,20 +35,20 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: #cbd5e1;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #94a3b8;
 }
 
 /* Focus ring */
 :focus-visible {
-  outline: 2px solid #0ea5e9;
+  outline: 2px solid var(--color-brand-secondary);
   outline-offset: 2px;
 }

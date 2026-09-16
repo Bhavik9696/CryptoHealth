@@ -16,24 +16,24 @@ interface ActivityFeedProps {
 
 export function ActivityFeed({ logs }: ActivityFeedProps) {
   return (
-    <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-slate-800">
-        <h2 className="text-white font-semibold text-sm">Recent Activity</h2>
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+      <div className="px-5 py-4 border-b border-slate-100">
+        <h2 className="text-slate-900 font-semibold text-sm">Recent Activity</h2>
       </div>
-      <div className="divide-y divide-slate-800/50">
+      <div className="divide-y divide-slate-100">
         {logs.slice(0, 8).map((log) => {
           const Icon = actionIcons[log.action] ?? CheckCircle
           const isSuccess = log.status === 'SUCCESS'
           return (
-            <div key={log.id} className="flex items-start gap-3 px-5 py-3.5">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${isSuccess ? 'bg-emerald-500/10' : 'bg-red-500/10'}`}>
-                <Icon className={`w-4 h-4 ${isSuccess ? 'text-emerald-400' : 'text-red-400'}`} />
+            <div key={log.id} className="flex items-start gap-3 px-5 py-3.5 hover:bg-slate-50 transition-colors">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${isSuccess ? 'bg-teal-50' : 'bg-red-50'}`}>
+                <Icon className={`w-4 h-4 ${isSuccess ? 'text-teal-600' : 'text-red-500'}`} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white text-sm font-medium">{log.action}</p>
-                <p className="text-slate-400 text-xs">{log.user_name ?? 'Unknown'}</p>
+                <p className="text-slate-900 text-sm font-medium">{log.action}</p>
+                <p className="text-slate-500 text-xs">{log.user_name ?? 'Unknown'}</p>
               </div>
-              <p className="text-slate-500 text-xs whitespace-nowrap shrink-0">{formatDateTime(log.created_at)}</p>
+              <p className="text-slate-400 text-xs whitespace-nowrap shrink-0">{formatDateTime(log.created_at)}</p>
             </div>
           )
         })}

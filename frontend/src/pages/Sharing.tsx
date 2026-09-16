@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Clock, CheckCircle, XCircle, MinusCircle } from 'lucide-react'
+import { Plus, Clock, CheckCircle, MinusCircle } from 'lucide-react'
 import { sharingService } from '@/services/sharing.service'
 import { reportService } from '@/services/report.service'
 import { ShareDialog } from '@/components/sharing/ShareDialog'
@@ -21,9 +21,9 @@ const statusIcon: Record<string, React.ElementType> = {
 }
 
 const statusClasses: Record<string, string> = {
-  ACTIVE: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
-  EXPIRED: 'text-slate-400 bg-slate-500/10 border-slate-500/30',
-  REVOKED: 'text-red-400 bg-red-500/10 border-red-500/30',
+  ACTIVE: 'text-teal-700 bg-teal-50 border-teal-200',
+  EXPIRED: 'text-slate-700 bg-slate-100 border-slate-200',
+  REVOKED: 'text-red-700 bg-red-50 border-red-200',
 }
 
 export default function Sharing() {
@@ -74,12 +74,12 @@ export default function Sharing() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-white text-xl font-bold">Temporary Access</h2>
-          <p className="text-slate-400 text-sm mt-0.5">{activeShares.length} active shares</p>
+          <h2 className="text-slate-900 text-xl font-bold">Temporary Access</h2>
+          <p className="text-slate-500 text-sm mt-0.5">{activeShares.length} active shares</p>
         </div>
         <button
           onClick={() => setShareDialogOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
         >
           <Plus className="w-4 h-4" />
           Create Share
@@ -96,27 +96,27 @@ export default function Sharing() {
           action={{ label: 'Create Share', onClick: () => setShareDialogOpen(true) }}
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-800">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-800/40">
-                <th className="text-left px-4 py-3 text-slate-400 font-medium">Patient</th>
-                <th className="text-left px-4 py-3 text-slate-400 font-medium">Report</th>
-                <th className="text-left px-4 py-3 text-slate-400 font-medium">Expires</th>
-                <th className="text-left px-4 py-3 text-slate-400 font-medium">Status</th>
-                <th className="text-left px-4 py-3 text-slate-400 font-medium">Actions</th>
+              <tr className="border-b border-slate-200 bg-slate-50">
+                <th className="text-left px-4 py-3 text-slate-600 font-medium">Patient</th>
+                <th className="text-left px-4 py-3 text-slate-600 font-medium">Report</th>
+                <th className="text-left px-4 py-3 text-slate-600 font-medium">Expires</th>
+                <th className="text-left px-4 py-3 text-slate-600 font-medium">Status</th>
+                <th className="text-left px-4 py-3 text-slate-600 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {shares.map((s) => {
                 const Icon = statusIcon[s.status] ?? CheckCircle
                 return (
-                  <tr key={s.id} className="border-b border-slate-800/70 hover:bg-slate-800/20">
-                    <td className="px-4 py-3 text-slate-300">{s.patient_name ?? '—'}</td>
-                    <td className="px-4 py-3 text-white font-medium">{s.report_type ?? '—'}</td>
-                    <td className="px-4 py-3 text-slate-400">
+                  <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors last:border-0">
+                    <td className="px-4 py-3 text-slate-600">{s.patient_name ?? '—'}</td>
+                    <td className="px-4 py-3 text-slate-900 font-medium">{s.report_type ?? '—'}</td>
+                    <td className="px-4 py-3 text-slate-500">
                       {s.status === 'ACTIVE' ? (
-                        <span className="text-emerald-400">{getTimeRemaining(s.expires_at)}</span>
+                        <span className="text-teal-600 font-medium">{getTimeRemaining(s.expires_at)}</span>
                       ) : formatDateTime(s.expires_at)}
                     </td>
                     <td className="px-4 py-3">
@@ -126,11 +126,11 @@ export default function Sharing() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         {s.status === 'ACTIVE' && (
                           <>
-                            <button onClick={() => setQrShare(s)} className="text-sky-400 hover:text-sky-300 text-xs font-medium">QR</button>
-                            <button onClick={() => setRevokeTarget(s)} className="text-red-400 hover:text-red-300 text-xs font-medium">Revoke</button>
+                            <button onClick={() => setQrShare(s)} className="text-teal-600 hover:text-teal-700 text-xs font-medium transition-colors">QR</button>
+                            <button onClick={() => setRevokeTarget(s)} className="text-red-600 hover:text-red-700 text-xs font-medium transition-colors">Revoke</button>
                           </>
                         )}
                       </div>
