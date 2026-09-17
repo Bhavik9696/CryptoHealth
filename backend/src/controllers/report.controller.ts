@@ -2,6 +2,17 @@ import { Request, Response } from 'express';
 import { reportService } from '../services/report.service.js';
 import { sendSuccess, sendPaginated, sendError } from '../utils/response.js';
 import { env } from '../config/env.js';
+import { MedicalReport } from '../types/report.types.js';
+
+/**
+ * Strips internal cryptographic fields before sending a report to the client.
+ * encryption_metadata, file_path, file_hash are server-side implementation details
+ * that must never be exposed through the API.
+ */
+function sanitizeReport(report: MedicalReport): Omit<MedicalReport, 'encryption_metadata' | 'file_path' | 'file_hash'> {
+  const { encryption_metadata, file_path, file_hash, ...safe } = report;
+  return safe;
+}
 
 export class ReportController {
   async uploadReport(req: Request, res: Response): Promise<void> {
@@ -34,7 +45,7 @@ export class ReportController {
         ipAddress: req.ip,
       });
 
-      sendSuccess(res, report, 'Medical report encrypted, signed, and uploaded successfully', 201);
+      sendSuccess(res, sanitizeReport(report), 'Medical report encrypted, signed, and uploaded successfully', 201);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Report upload failed';
       sendError(res, message, 'UPLOAD_ERROR', 400);
@@ -54,16 +65,22 @@ export class ReportController {
     const status = req.query.status ? String(req.query.status) : undefined;
     const report_type = req.query.report_type ? String(req.query.report_type) : undefined;
 
-    const { reports, total } = await reportService.getReports(req.user, {
-      page,
-      limit,
-      patient_id,
-      hospital_id,
-      status,
-      report_type,
-    });
+    try {
+      const { reports, total } = await reportService.getReports(req.user, {
+        page,
+        limit,
+        patient_id,
+        hospital_id,
+        status,
+        report_type,
+      });
 
-    sendPaginated(res, reports, total, page, limit);
+      sendPaginated(res, reports.map(sanitizeReport), total, page, limit);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch reports';
+      const statusCode = message.includes('denied') ? 403 : 400;
+      sendError(res, message, statusCode === 403 ? 'FORBIDDEN' : 'FETCH_ERROR', statusCode);
+    }
   }
 
   async getReportById(req: Request, res: Response): Promise<void> {
@@ -71,7 +88,7 @@ export class ReportController {
 
     try {
       const report = await reportService.getReportById(reportId, req.user, req.ip);
-      sendSuccess(res, report);
+      sendSuccess(res, sanitizeReport(report));
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Report not found';
       const statusCode = message.includes('denied') ? 403 : 404;
@@ -83,7 +100,7 @@ export class ReportController {
     const { reportId } = req.params;
 
     try {
-      // Validate access
+      // Validate access first — throws if unauthorized
       await reportService.getReportById(reportId, req.user, req.ip);
       const baseUrl = env.APP_URL;
       const downloadUrl = `${baseUrl}/api/v1/reports/${reportId}/file`;

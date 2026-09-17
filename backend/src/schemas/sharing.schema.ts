@@ -6,10 +6,16 @@ export const createShareSchema = z.object({
   duration_minutes: z.coerce.number().min(1).max(1440 * 7).default(60),
   can_view: z.boolean().default(true),
   can_download: z.boolean().default(false),
+  one_time_use: z.boolean().default(false),
 });
 
 export const validateTokenSchema = z.object({
   token: z.string().min(1, 'Access token is required'),
+});
+
+export const accessShareSchema = z.object({
+  token: z.string().min(1, 'Access token is required'),
+  action: z.enum(['view', 'download']).default('view'),
 });
 
 export const shareListQuerySchema = z.object({

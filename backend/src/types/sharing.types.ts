@@ -16,6 +16,8 @@ export interface Share {
   status: ShareStatus;
   can_download: boolean;
   can_view: boolean;
+  one_time_use?: boolean;
+  access_count?: number;
   created_at: string;
   revoked_at?: string;
   used_at?: string;
@@ -27,4 +29,5 @@ export interface CreateSharePayload {
   duration_minutes: number;
   can_view: boolean;
   can_download: boolean;
+  one_time_use?: boolean;
 }

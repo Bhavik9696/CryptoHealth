@@ -28,7 +28,7 @@ export class ReportService {
    * 3. Encrypt file with AES-256-GCM
    * 4. Sign file hash with hospital Ed25519 digital signature
    * 5. Upload encrypted binary to secure storage
-   * 6. Save metadata record to database
+   * 6. Save metadata record to database (status = PENDING, not auto-VERIFIED)
    * 7. Record security audit log
    */
   async uploadReport(params: UploadReportParams): Promise<MedicalReport> {
@@ -56,7 +56,7 @@ export class ReportService {
     const storagePath = `medical-reports/${patient.id}/${reportId}/encrypted-report.bin`;
     await reportRepository.saveFile(storagePath, packedEncryptedData, 'application/octet-stream');
 
-    // 5. Create report record
+    // 5. Create report record — status is PENDING until independently verified
     const report: MedicalReport = {
       id: reportId,
       patient_id: patient.id,
@@ -73,9 +73,8 @@ export class ReportService {
       file_hash: fileHash,
       encryption_metadata: encrypted.metadata,
       signature,
-      status: 'VERIFIED',
+      status: 'PENDING',
       uploaded_at: new Date().toISOString(),
-      verified_at: new Date().toISOString(),
       notes: params.notes,
     };
 
@@ -102,8 +101,9 @@ export class ReportService {
   }
 
   async getReports(user: AuthContextUser, params: ReportFilterParams = {}) {
-    // Role-based filtering
+    // Role-based filtering — every role is strictly scoped, no unrestricted access
     const filter: ReportFilterParams = { ...params };
+
     if (user.role === 'patient') {
       const patient = await patientRepository.findByUserId(user.id);
       if (patient) {
@@ -111,6 +111,12 @@ export class ReportService {
       }
     } else if (user.role === 'hospital' && user.profile?.hospital_id) {
       filter.hospital_id = user.profile.hospital_id;
+    } else if (user.role === 'doctor' && user.profile?.hospital_id) {
+      // Doctors can only see reports from their own hospital
+      filter.hospital_id = user.profile.hospital_id;
+    } else if (user.role !== 'admin') {
+      // Unknown or unlinked role — deny all results
+      throw new Error('Access denied: Your account is not linked to a hospital or patient record');
     }
 
     return reportRepository.findAll(filter);
@@ -122,10 +128,24 @@ export class ReportService {
       throw new Error(`Report not found with ID: ${reportId}`);
     }
 
-    // Check authorization if user provided
-    if (user && user.role === 'patient') {
-      const patient = await patientRepository.findByUserId(user.id);
-      if (patient && report.patient_id !== patient.id) {
+    // Authorization check for every authenticated role
+    if (user) {
+      let authorized = false;
+
+      if (user.role === 'admin') {
+        authorized = true;
+      } else if (user.role === 'patient') {
+        const patient = await patientRepository.findByUserId(user.id);
+        authorized = !!patient && report.patient_id === patient.id;
+      } else if (user.role === 'doctor') {
+        // Doctors can only access reports from their own hospital
+        authorized = !!user.profile?.hospital_id && report.hospital_id === user.profile.hospital_id;
+      } else if (user.role === 'hospital') {
+        // Hospital users can only access their own hospital's reports
+        authorized = !!user.profile?.hospital_id && report.hospital_id === user.profile.hospital_id;
+      }
+
+      if (!authorized) {
         await auditService.log({
           userId: user.id,
           userName: user.profile?.full_name,
@@ -137,9 +157,7 @@ export class ReportService {
         });
         throw new Error('Access denied: You do not have permission to view this report');
       }
-    }
 
-    if (user) {
       await auditService.log({
         userId: user.id,
         userName: user.profile?.full_name,

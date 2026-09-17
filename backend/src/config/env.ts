@@ -1,7 +1,26 @@
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 import { z } from 'zod';
 
 dotenv.config();
+
+/**
+ * Generates a fallback encryption key for development only.
+ * In production, ENCRYPTION_KEY MUST be set explicitly — an empty string will
+ * fail the 64-char length validation, giving a clear startup error.
+ */
+function getEncryptionKeyDefault(): string {
+  if ((process.env.NODE_ENV || 'development') === 'production') {
+    return ''; // intentionally invalid — triggers zod validation error with a clear message
+  }
+  const devKey = crypto.randomBytes(32).toString('hex');
+  console.warn(
+    '[SECURITY WARNING] No ENCRYPTION_KEY set. Auto-generated an ephemeral key for this session. ' +
+    'Data encrypted now will be UNRECOVERABLE after restart. ' +
+    'Generate a persistent key: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
+  );
+  return devKey;
+}
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -15,8 +34,8 @@ const envSchema = z.object({
   CORS_ORIGINS: z.string().default('http://localhost:5173,http://localhost:3000'),
   ENCRYPTION_KEY: z
     .string()
-    .length(64, 'ENCRYPTION_KEY must be a 64-character hex string (32 bytes)')
-    .default('0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'),
+    .length(64, 'ENCRYPTION_KEY must be a 64-character hex string (32 bytes). Generate: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"')
+    .default(getEncryptionKeyDefault()),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(15 * 60 * 1000),
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(500),
 });

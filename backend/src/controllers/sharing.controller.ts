@@ -27,15 +27,24 @@ export class SharingController {
   }
 
   async getShareById(req: Request, res: Response): Promise<void> {
-    const { shareId } = req.params;
-    const share = await sharingService.getShareById(shareId);
-
-    if (!share) {
-      sendError(res, `Share grant with ID "${shareId}" not found`, 'NOT_FOUND', 404);
+    if (!req.user) {
+      sendError(res, 'Authentication required', 'UNAUTHORIZED', 401);
       return;
     }
 
-    sendSuccess(res, share);
+    const { shareId } = req.params;
+    try {
+      const share = await sharingService.getShareById(shareId, req.user);
+      if (!share) {
+        sendError(res, `Share grant with ID "${shareId}" not found`, 'NOT_FOUND', 404);
+        return;
+      }
+      sendSuccess(res, share);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to retrieve share';
+      const statusCode = message.includes('denied') ? 403 : 400;
+      sendError(res, message, statusCode === 403 ? 'FORBIDDEN' : 'SHARE_ERROR', statusCode);
+    }
   }
 
   async createShare(req: Request, res: Response): Promise<void> {
@@ -61,12 +70,56 @@ export class SharingController {
     }
 
     try {
-      const share = await sharingService.validateToken(token, req.ip);
+      // Pass authenticated user context (if any) for recipient enforcement
+      const share = await sharingService.validateToken(token, req.user || undefined, req.ip);
       sendSuccess(res, share, 'Share token verified and valid');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Invalid or expired share token';
-      const statusCode = message.includes('expired') || message.includes('revoked') ? 403 : 404;
+      const statusCode =
+        message.includes('expired') || message.includes('revoked') || message.includes('denied') ? 403
+          : message.includes('Authentication required') ? 401
+          : 404;
       sendError(res, message, 'TOKEN_INVALID', statusCode);
+    }
+  }
+
+  /**
+   * Access report data through a share token with scope enforcement.
+   * POST /api/v1/shares/access { token, action: 'view' | 'download' }
+   */
+  async accessSharedReport(req: Request, res: Response): Promise<void> {
+    const { token, action } = req.body;
+    if (!token) {
+      sendError(res, 'Token is required', 'VALIDATION_ERROR', 422);
+      return;
+    }
+
+    const accessAction: 'view' | 'download' = action === 'download' ? 'download' : 'view';
+
+    try {
+      const result = await sharingService.accessSharedReport(
+        token,
+        accessAction,
+        req.user || undefined,
+        req.ip
+      );
+
+      if (accessAction === 'download' && result.file) {
+        res.setHeader('Content-Type', result.file.mimeType);
+        res.setHeader('Content-Disposition', `inline; filename="${result.file.fileName}"`);
+        res.setHeader('Content-Length', result.file.buffer.length);
+        res.send(result.file.buffer);
+        return;
+      }
+
+      sendSuccess(res, result.report, 'Report accessed via share grant');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to access shared report';
+      const statusCode =
+        message.includes('denied') || message.includes('revoked') || message.includes('expired') ? 403
+          : message.includes('Authentication required') ? 401
+          : 404;
+      sendError(res, message, statusCode === 403 ? 'FORBIDDEN' : 'ACCESS_ERROR', statusCode);
     }
   }
 

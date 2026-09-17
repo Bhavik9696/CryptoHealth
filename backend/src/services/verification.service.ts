@@ -24,12 +24,9 @@ export class VerificationService {
     if (report.file_hash) {
       hashValid = true;
       if (report.signature) {
-        // Verify Ed25519 signature of file hash
+        // Verify Ed25519 signature of file hash — only cryptographically valid signatures accepted.
+        // The previous backdoor that accepted any signature containing the word "verified" has been removed.
         signatureValid = signatureService.verify(report.file_hash, report.signature);
-        // Also accept seeded verified reports
-        if (!signatureValid && report.signature.includes('verified')) {
-          signatureValid = true;
-        }
       }
     }
 
