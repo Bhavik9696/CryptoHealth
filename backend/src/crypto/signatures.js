@@ -31,8 +31,28 @@ function generateSigningKeyPair() {
  * @returns {Buffer} SHA-256 hash
  */
 function hashPayload(payload) {
-  const canonical = JSON.stringify(payload, Object.keys(payload).sort());
+  const canonical = stableStringify(payload);
   return crypto.createHash('sha256').update(canonical).digest();
+}
+
+function stableStringify(value) {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+  return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',')}}`;
+}
+
+function signCanonicalPayload(payload, privateKeyBase64) {
+  const payloadHash = hashPayload(payload);
+  const privateKeyObject = crypto.createPrivateKey({
+    key: Buffer.from(privateKeyBase64, 'base64'),
+    format: 'der',
+    type: 'pkcs8',
+  });
+
+  return {
+    signature: crypto.sign(null, payloadHash, privateKeyObject).toString('base64'),
+    payloadHash: payloadHash.toString('base64'),
+  };
 }
 
 /**
@@ -93,6 +113,7 @@ function verifySignature(signatureBase64, payloadHashBase64, publicKeyBase64) {
 module.exports = {
   generateSigningKeyPair,
   hashPayload,
+  signCanonicalPayload,
   signPayload,
   verifySignature,
 };

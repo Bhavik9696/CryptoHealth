@@ -3,6 +3,8 @@
  */
 const { supabaseAdmin } = require('../config/supabase');
 const { generateSigningKeyPair } = require('../crypto/signatures');
+const { encryptBuffer } = require('../crypto/envelopeEncryption');
+const { env } = require('../config/env');
 const {
   BadRequestError,
   NotFoundError,
@@ -28,6 +30,10 @@ async function createHospital({ name, registrationNumber, address, city, state, 
 
   // Generate Ed25519 signing keypair
   const { publicKey, privateKey } = generateSigningKeyPair();
+  if (!env.MASTER_ENCRYPTION_KEY) {
+    throw new BadRequestError('MASTER_ENCRYPTION_KEY must be configured before registering a hospital');
+  }
+  const encryptedPrivateKey = encryptBuffer(Buffer.from(privateKey, 'base64'), env.MASTER_ENCRYPTION_KEY);
 
   const { data: hospital, error } = await supabaseAdmin
     .from('hospitals')
@@ -40,7 +46,10 @@ async function createHospital({ name, registrationNumber, address, city, state, 
       phone,
       email,
       signing_public_key: publicKey,
-      signing_private_key_encrypted: privateKey, // MVP: stored as base64; production: encrypt with KMS
+      signing_private_key_encrypted: JSON.stringify({
+        ciphertext: encryptedPrivateKey.ciphertext.toString('base64'),
+        metadata: encryptedPrivateKey.metadata,
+      }),
       is_verified: false,
       created_by: createdBy,
     })

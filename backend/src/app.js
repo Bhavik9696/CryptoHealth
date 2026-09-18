@@ -15,6 +15,7 @@ const authRoutes = require('./routes/auth.routes');
 const hospitalRoutes = require('./routes/hospital.routes');
 const doctorRoutes = require('./routes/doctor.routes');
 const patientLinkRoutes = require('./routes/patientLink.routes');
+const reportRoutes = require('./routes/report.routes');
 
 const app = express();
 
@@ -62,6 +63,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/patient-links', patientLinkRoutes);
+app.use('/api/reports', reportRoutes);
 
 // Future route registrations:
 // app.use('/api/reports', reportRoutes);
