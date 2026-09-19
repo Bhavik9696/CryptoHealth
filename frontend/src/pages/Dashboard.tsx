@@ -17,11 +17,13 @@ export default function Dashboard() {
   const { data: reportsData, isLoading: reportsLoading } = useQuery({
     queryKey: QUERY_KEYS.REPORTS,
     queryFn: () => reportService.getReports({ limit: 10 }),
+    throwOnError: false,   // Never crash the component tree on failure
   })
 
   const { data: logsData } = useQuery({
     queryKey: QUERY_KEYS.AUDIT_LOGS,
     queryFn: () => auditService.getLogs({ limit: 8 }),
+    throwOnError: false,   // Never crash the component tree on failure
   })
 
   const reports = reportsData?.data ?? []

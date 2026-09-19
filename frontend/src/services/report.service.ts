@@ -3,9 +3,18 @@ import type { MedicalReport } from '@/types/report'
 import type { ApiResponse, PaginatedResponse } from '@/types/api'
 
 export const reportService = {
-  async getReports(params?: Record<string, unknown>): Promise<PaginatedResponse<MedicalReport>> {
+  async getReports(params?: Record<string, unknown>): Promise<{ data: MedicalReport[]; total: number; page: number; limit: number; totalPages: number }> {
     const response = await apiClient.get('/reports', { params })
-    return response.data
+    // Backend returns: { success, message, data: { reports: [...], pagination: {...} } }
+    const body = response.data
+    const inner = body?.data ?? {}
+    return {
+      data: inner.reports ?? [],
+      total: inner.pagination?.total ?? 0,
+      page: inner.pagination?.page ?? 1,
+      limit: inner.pagination?.limit ?? 20,
+      totalPages: inner.pagination?.totalPages ?? 1,
+    }
   },
 
   async getReport(reportId: string): Promise<MedicalReport> {

@@ -16,6 +16,7 @@ const hospitalRoutes = require('./routes/hospital.routes');
 const doctorRoutes = require('./routes/doctor.routes');
 const patientLinkRoutes = require('./routes/patientLink.routes');
 const reportRoutes = require('./routes/report.routes');
+const { grantRouter, tokenRouter } = require('./routes/accessGrant.routes');
 
 const app = express();
 
@@ -64,9 +65,11 @@ app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/patient-links', patientLinkRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/access-grants', grantRouter);
+app.use('/api/access-tokens', tokenRouter);
 
 // Future route registrations:
-// app.use('/api/reports', reportRoutes);
+// app.use('/api/audit', auditRoutes);  ← Phase 7
 // app.use('/api/access-grants', accessGrantRoutes);
 // app.use('/api/access-tokens', accessTokenRoutes);
 // app.use('/api/audit', auditRoutes);

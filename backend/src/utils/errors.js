@@ -63,6 +63,14 @@ class TooManyRequestsError extends AppError {
   }
 }
 
+// 410 Gone — resource existed but is no longer available (e.g. expired/used token)
+class GoneError extends AppError {
+  constructor(message = 'Gone') {
+    super(message, 410);
+    this.name = 'GoneError';
+  }
+}
+
 module.exports = {
   AppError,
   BadRequestError,
@@ -72,4 +80,5 @@ module.exports = {
   ConflictError,
   ValidationError,
   TooManyRequestsError,
+  GoneError,
 };
