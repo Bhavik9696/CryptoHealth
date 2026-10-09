@@ -52,6 +52,14 @@ const loginSchema = Joi.object({
   }),
 });
 
+const forgotPasswordSchema = Joi.object({
+  email: Joi.string().email().required(),
+});
+
+const resetPasswordSchema = Joi.object({
+  password: Joi.string().min(8).max(128).required(),
+});
+
 const updateProfileSchema = Joi.object({
   full_name: Joi.string().min(2).max(100).optional(),
   phone: Joi.string()
@@ -73,6 +81,10 @@ router.post('/login', authLimiter, validate(loginSchema), authController.login);
 
 // POST /api/auth/logout
 router.post('/logout', authenticate, authController.logout);
+
+// Password recovery endpoints
+router.post('/forgot-password', authLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
+router.post('/reset-password', authLimiter, authenticate, validate(resetPasswordSchema), authController.resetPassword);
 
 // GET /api/auth/me
 router.get('/me', authenticate, authController.getMe);
