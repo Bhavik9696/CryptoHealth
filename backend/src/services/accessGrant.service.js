@@ -70,6 +70,7 @@ async function createGrant({
   reportId,
   scope = 'view',
   expiresInHours = DEFAULT_ACCESS_EXPIRY_HOURS,
+  expiresInMinutes = null,
   maxUses = null,
   recipientId = null,
   ipAddress,
@@ -82,15 +83,23 @@ async function createGrant({
     throw new BadRequestError('scope must be "view" or "download"');
   }
 
-  // Validate expiry
-  if (expiresInHours <= 0 || expiresInHours > 168) {
+  // Validate expiry. Minute precision is used by the portal UI; the original
+  // hours field remains supported for existing API clients.
+  if (expiresInMinutes !== null && expiresInMinutes !== undefined) {
+    if (!Number.isInteger(expiresInMinutes) || expiresInMinutes < 1 || expiresInMinutes > 10080) {
+      throw new BadRequestError('expiresInMinutes must be an integer between 1 and 10080 (7 days)');
+    }
+  } else if (!Number.isFinite(expiresInHours) || expiresInHours <= 0 || expiresInHours > 168) {
     throw new BadRequestError('expiresInHours must be between 1 and 168 (7 days)');
   }
 
   // Generate a cryptographically random token and hash it for storage
   const rawToken = generateAccessToken(ACCESS_TOKEN_LENGTH);
   const tokenHash = hashToken(rawToken);
-  const expiresAt = new Date(Date.now() + expiresInHours * 60 * 60 * 1000);
+  const durationMs = expiresInMinutes !== null && expiresInMinutes !== undefined
+    ? expiresInMinutes * 60 * 1000
+    : expiresInHours * 60 * 60 * 1000;
+  const expiresAt = new Date(Date.now() + durationMs);
 
   const { data: grant, error } = await supabaseAdmin
     .from('access_grants')
@@ -254,7 +263,7 @@ async function revokeGrant(grantId, patientId, ipAddress) {
  *
  * @returns {{ grant: object, report: object }} on success
  */
-async function validateToken(rawToken, doctorUserId, ipAddress) {
+async function validateToken(rawToken, doctorUserId, ipAddress, { consume = true, actorRole = 'doctor' } = {}) {
   const tokenHash = hashToken(rawToken);
 
   // Look up by hash
@@ -285,7 +294,7 @@ async function validateToken(rawToken, doctorUserId, ipAddress) {
   const denyAndAudit = async (reason) => {
     await createAuditLog({
       actorId: doctorUserId,
-      actorRole: 'doctor',
+      actorRole,
       action: AUDIT_ACTIONS.ACCESS_TOKEN_VALIDATED,
       resourceType: 'access_grant',
       result: AUDIT_RESULTS.DENIED,
@@ -296,6 +305,7 @@ async function validateToken(rawToken, doctorUserId, ipAddress) {
   };
 
   if (!grant) return denyAndAudit('Invalid token');
+  if (grant.recipient_id && grant.recipient_id !== doctorUserId) return denyAndAudit('Token is restricted to another recipient');
   if (grant.status === ACCESS_GRANT_STATUS.REVOKED) return denyAndAudit('Token has been revoked by the patient');
   if (grant.status === ACCESS_GRANT_STATUS.USED) return denyAndAudit('Token has already been fully used');
   if (grant.status === ACCESS_GRANT_STATUS.EXPIRED || new Date(grant.expires_at) < new Date()) {
@@ -310,21 +320,26 @@ async function validateToken(rawToken, doctorUserId, ipAddress) {
     return denyAndAudit('Token use limit reached');
   }
 
-  // Atomically increment use_count; mark used if limit reached
-  const newUseCount = grant.use_count + 1;
-  const isExhausted = grant.max_uses !== null && newUseCount >= grant.max_uses;
+  // Previewing a share URL must not consume one-time access. The file route
+  // calls the same validator with consume=true immediately before streaming.
+  const newUseCount = grant.use_count + (consume ? 1 : 0);
+  const isExhausted = consume && grant.max_uses !== null && newUseCount >= grant.max_uses;
 
-  await supabaseAdmin
-    .from('access_grants')
-    .update({
-      use_count: newUseCount,
-      status: isExhausted ? ACCESS_GRANT_STATUS.USED : ACCESS_GRANT_STATUS.ACTIVE,
-    })
-    .eq('id', grant.id);
+  if (consume) {
+    const { error: updateError } = await supabaseAdmin
+      .from('access_grants')
+      .update({
+        use_count: newUseCount,
+        status: isExhausted ? ACCESS_GRANT_STATUS.USED : ACCESS_GRANT_STATUS.ACTIVE,
+      })
+      .eq('id', grant.id)
+      .eq('status', ACCESS_GRANT_STATUS.ACTIVE);
+    if (updateError) return denyAndAudit('Unable to record token usage');
+  }
 
   await createAuditLog({
     actorId: doctorUserId,
-    actorRole: 'doctor',
+    actorRole,
     action: AUDIT_ACTIONS.ACCESS_TOKEN_VALIDATED,
     resourceType: 'access_grant',
     resourceId: grant.id,
@@ -333,6 +348,7 @@ async function validateToken(rawToken, doctorUserId, ipAddress) {
       report_id: grant.report_id,
       scope: grant.scope,
       use_count: newUseCount,
+      preview_only: !consume,
     },
     ipAddress,
   });
@@ -340,6 +356,7 @@ async function validateToken(rawToken, doctorUserId, ipAddress) {
   return {
     grant: {
       id: grant.id,
+      reportId: grant.report_id,
       scope: grant.scope,
       expiresAt: grant.expires_at,
       useCount: newUseCount,
