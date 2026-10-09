@@ -1,6 +1,6 @@
 /**
- * Express Application Setup.
- * Configures middleware, routes, and error handling.
+ * Express application setup.
+ * Configures security middleware, health checks, and API routes.
  */
 const express = require('express');
 const cors = require('cors');
@@ -10,47 +10,30 @@ const { env } = require('./config/env');
 const { generalLimiter } = require('./middleware/rateLimiter');
 const { errorHandler } = require('./middleware/errorHandler');
 
-// Import routes
 const authRoutes = require('./routes/auth.routes');
 const hospitalRoutes = require('./routes/hospital.routes');
 const doctorRoutes = require('./routes/doctor.routes');
 const patientLinkRoutes = require('./routes/patientLink.routes');
 const reportRoutes = require('./routes/report.routes');
+const auditRoutes = require('./routes/audit.routes');
 const { grantRouter, tokenRouter } = require('./routes/accessGrant.routes');
 
 const app = express();
 
-// --- Global Middleware ---
-
-// Security headers
+app.disable('x-powered-by');
 app.use(helmet());
-
-// CORS
-app.use(
-  cors({
-    origin: env.FRONTEND_URL,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
-
-// Request logging
-if (env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-} else {
-  app.use(morgan('combined'));
-}
-
-// Body parsing
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// General rate limiting
+app.use(cors({
+  origin: env.FRONTEND_URL,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+app.use(morgan(env.NODE_ENV === 'development' ? 'dev' : 'combined'));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(generalLimiter);
 
-// --- Health Check ---
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_req, res) => {
   res.json({
     success: true,
     message: 'Crypto Health API is running',
@@ -59,7 +42,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// --- API Routes ---
 app.use('/api/auth', authRoutes);
 app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/doctors', doctorRoutes);
@@ -67,15 +49,8 @@ app.use('/api/patient-links', patientLinkRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/access-grants', grantRouter);
 app.use('/api/access-tokens', tokenRouter);
+app.use('/api/audit', auditRoutes);
 
-// Future route registrations:
-// app.use('/api/audit', auditRoutes);  ← Phase 7
-// app.use('/api/access-grants', accessGrantRoutes);
-// app.use('/api/access-tokens', accessTokenRoutes);
-// app.use('/api/audit', auditRoutes);
-// app.use('/api/admin', adminRoutes);
-
-// --- 404 Handler ---
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -83,7 +58,6 @@ app.use((req, res) => {
   });
 });
 
-// --- Global Error Handler (must be last) ---
 app.use(errorHandler);
 
 module.exports = app;
