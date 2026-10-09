@@ -326,15 +326,20 @@ async function validateToken(rawToken, doctorUserId, ipAddress, { consume = true
   const isExhausted = consume && grant.max_uses !== null && newUseCount >= grant.max_uses;
 
   if (consume) {
-    const { error: updateError } = await supabaseAdmin
+    const { data: consumedGrant, error: updateError } = await supabaseAdmin
       .from('access_grants')
       .update({
         use_count: newUseCount,
         status: isExhausted ? ACCESS_GRANT_STATUS.USED : ACCESS_GRANT_STATUS.ACTIVE,
       })
       .eq('id', grant.id)
-      .eq('status', ACCESS_GRANT_STATUS.ACTIVE);
-    if (updateError) return denyAndAudit('Unable to record token usage');
+      .eq('status', ACCESS_GRANT_STATUS.ACTIVE)
+      .eq('use_count', grant.use_count)
+      .select('id')
+      .maybeSingle();
+    // Optimistic concurrency control prevents two simultaneous requests from
+    // both consuming the same use-count slot.
+    if (updateError || !consumedGrant) return denyAndAudit('Token was already used or changed');
   }
 
   await createAuditLog({
