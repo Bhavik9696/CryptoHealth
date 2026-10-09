@@ -167,6 +167,7 @@ async function listReports({ user, patientId, hospitalId, page = 1, limit = 20 }
     const hospital = await getHospitalForUploader(user.id, user.role);
     if (!hospital) throw new ForbiddenError('Hospital membership not found');
     query = query.eq('hospital_id', hospital.hospital_id);
+    if (patientId) query = query.eq('patient_id', patientId);
   } else if (user.role === 'admin') {
     if (patientId) query = query.eq('patient_id', patientId);
     if (hospitalId) query = query.eq('hospital_id', hospitalId);
