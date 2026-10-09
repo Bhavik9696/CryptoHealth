@@ -7,6 +7,7 @@ const { supabaseAdmin } = require('../config/supabase');
 const { authenticate } = require('../middleware/auth');
 const { authorize } = require('../middleware/rbac');
 const { ROLES } = require('../utils/constants');
+const { BadRequestError } = require('../utils/errors');
 
 const router = express.Router();
 
@@ -37,9 +38,7 @@ router.get(
 
       const { data, error, count } = await query;
       if (error) {
-        const failure = new Error('Unable to retrieve audit events');
-        failure.statusCode = 502;
-        return next(failure);
+        return next(new BadRequestError('Unable to retrieve audit events'));
       }
 
       const total = count || 0;
