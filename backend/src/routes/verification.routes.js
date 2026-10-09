@@ -7,7 +7,10 @@ const express = require('express');
 const crypto = require('crypto');
 const { supabaseAdmin } = require('../config/supabase');
 const { env } = require('../config/env');
-const { optionalAuth } = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
+const { authorize } = require('../middleware/rbac');
+const { ROLES } = require('../utils/constants');
+const reportService = require('../services/report.service');
 const { sensitiveLimiter } = require('../middleware/rateLimiter');
 const { decryptBuffer } = require('../crypto/envelopeEncryption');
 const { hashPayload, verifySignature } = require('../crypto/signatures');
@@ -18,6 +21,8 @@ const router = express.Router();
 async function verifyReport(req, res, next) {
   try {
     const { reportId } = req.params;
+    // Reuse normal record-level access policy before running the verification scan.
+    await reportService.getReport(reportId, req.user);
     const { data: report, error } = await supabaseAdmin
       .from('medical_reports')
       .select('id, patient_id, hospital_id, signing_hospital_id, report_type, title, file_name, file_size, mime_type, file_path, file_hash, encryption_metadata, signature, signed_payload_hash, status, uploaded_at, verified_at, uploaded_by')
@@ -119,7 +124,7 @@ async function verifyReport(req, res, next) {
   }
 }
 
-router.get('/reports/:reportId', optionalAuth, sensitiveLimiter, verifyReport);
-router.post('/reports/:reportId', optionalAuth, sensitiveLimiter, verifyReport);
+router.get('/reports/:reportId', authenticate, authorize(ROLES.PATIENT, ROLES.DOCTOR, ROLES.HOSPITAL_ADMIN, ROLES.ADMIN), sensitiveLimiter, verifyReport);
+router.post('/reports/:reportId', authenticate, authorize(ROLES.PATIENT, ROLES.DOCTOR, ROLES.HOSPITAL_ADMIN, ROLES.ADMIN), sensitiveLimiter, verifyReport);
 
 module.exports = router;
