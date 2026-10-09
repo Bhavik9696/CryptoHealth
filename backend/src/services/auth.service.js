@@ -165,10 +165,39 @@ async function updateProfile(userId, updates) {
   return profile;
 }
 
+/**
+ * Send a password-recovery email. The response is intentionally generic so
+ * callers cannot use this endpoint to discover registered accounts.
+ */
+async function sendPasswordResetEmail(email) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: require('../config/env').env.PASSWORD_RESET_REDIRECT_URL,
+  });
+  if (error) {
+    // Don't expose whether an account exists; let the generic UI response stand.
+    console.warn('Password reset request could not be completed:', error.message);
+  }
+  return { message: 'If that email is registered, a password reset link has been sent.' };
+}
+
+/**
+ * Update only the authenticated user's password. The route must authenticate
+ * the Supabase access token before calling this admin operation.
+ */
+async function updatePassword(userId, password) {
+  const { data, error } = await supabaseAdmin.auth.admin.updateUserById(userId, { password });
+  if (error || !data?.user) {
+    throw new BadRequestError('Unable to update password. Restart the reset flow and try again.');
+  }
+  return { message: 'Password updated successfully' };
+}
+
 module.exports = {
   register,
   login,
   logout,
   getProfile,
   updateProfile,
+  sendPasswordResetEmail,
+  updatePassword,
 };
