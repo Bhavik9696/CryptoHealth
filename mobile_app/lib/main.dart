@@ -43,6 +43,7 @@ class PatientHomePage extends StatefulWidget {
 
 class _PatientHomePageState extends State<PatientHomePage> {
   int _selectedIndex = 0;
+  String _searchQuery = '';
   final List<MedicalRecord> _records = [
     MedicalRecord(
       title: 'Complete Blood Count',
@@ -230,10 +231,12 @@ class _PatientHomePageState extends State<PatientHomePage> {
             fillColor: Colors.white,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
           ),
-          onChanged: (value) => setState(() {}),
+          onChanged: (value) => setState(() => _searchQuery = value.trim().toLowerCase()),
         ),
         const SizedBox(height: 12),
-        ..._records.map((record) => _RecordTile(record: record, onTap: () => _showRecord(record))),
+        ..._records.where((record) => ('${record.title} ${record.type} ${record.facility}').toLowerCase().contains(_searchQuery)).map((record) => _RecordTile(record: record, onTap: () => _showRecord(record))),
+        if (_records.where((record) => ('${record.title} ${record.type} ${record.facility}').toLowerCase().contains(_searchQuery)).isEmpty)
+          const Padding(padding: EdgeInsets.all(24), child: Text('No records match your search.', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFF64748B)))),
         const SizedBox(height: 8),
         const _InfoBanner(icon: Icons.cloud_upload_outlined, title: 'Add a medical report', message: 'In the connected version, use the secure upload flow to add reports from a participating hospital or diagnostic centre.'),
       ],
