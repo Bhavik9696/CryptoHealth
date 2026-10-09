@@ -59,6 +59,10 @@ const env = {
     process.env.MASTER_ENCRYPTION_KEY,
     process.env.ENCRYPTION_KEY,
   ),
+  PASSWORD_RESET_REDIRECT_URL: firstDefined(
+    process.env.PASSWORD_RESET_REDIRECT_URL,
+    `${corsOrigins[0] || 'http://localhost:5173'}/reset-password`,
+  ),
 };
 
 module.exports = { env, validateEnv };
