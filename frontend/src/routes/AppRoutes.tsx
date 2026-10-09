@@ -16,6 +16,7 @@ const ReportDetails = lazy(() => import('@/pages/ReportDetails'))
 const UploadReport = lazy(() => import('@/pages/UploadReport'))
 const Verification = lazy(() => import('@/pages/Verification'))
 const Sharing = lazy(() => import('@/pages/Sharing'))
+const SharedAccess = lazy(() => import('@/pages/SharedAccess'))
 const AccessLogs = lazy(() => import('@/pages/AccessLogs'))
 const Profile = lazy(() => import('@/pages/Profile'))
 const NotFound = lazy(() => import('@/pages/NotFound'))
@@ -56,6 +57,7 @@ export function AppRoutes() {
           <Route path="reports/:reportId" element={<ReportDetails />} />
           <Route path="verification" element={<Verification />} />
           <Route path="sharing" element={<Sharing />} />
+          <Route path="shared/:token" element={<SharedAccess />} />
           <Route path="access-logs" element={<AccessLogs />} />
           <Route path="profile" element={<Profile />} />
         </Route>
