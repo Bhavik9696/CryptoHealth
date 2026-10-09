@@ -1,2 +1,31 @@
+# Dependencies and build outputs
+node_modules/
+**/node_modules/
+dist/
+build/
+coverage/
+.vite/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
+!.env.*.example
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local planning artifacts
 /ppt
 implementation_plan.md
