@@ -1,27 +1,20 @@
 const { createClient } = require('@supabase/supabase-js');
 const { env } = require('./env');
 
-/**
- * Supabase client with publishable key — used for auth operations
- * that respect Row Level Security (RLS).
- */
-const supabase = createClient(
-  env.SUPABASE_URL || '',
-  env.SUPABASE_PUBLISHABLE_KEY || ''
-);
+// Use inert local placeholders only so the API health endpoint and public
+// documentation can run before Supabase is configured. Production startup is
+// blocked by validateEnv() when any required backend credential is missing.
+const supabaseUrl = env.SUPABASE_URL || 'http://127.0.0.1:54321';
+const publishableKey = env.SUPABASE_PUBLISHABLE_KEY || 'local-development-placeholder-key';
+const secretKey = env.SUPABASE_SECRET_KEY || 'local-development-placeholder-key';
+
+/** Client for user-scoped authentication operations. */
+const supabase = createClient(supabaseUrl, publishableKey);
 
 /**
- * Supabase admin client with secret key — bypasses RLS.
- * Use ONLY for server-side operations that need full access
- * (e.g., creating profiles, admin queries, storage operations).
- *
- * The secret key (formerly "service role key") has FULL access
- * to your database, bypassing all Row Level Security policies.
- * NEVER expose this key to the client/frontend.
+ * Server-only administrative client. Its secret key bypasses RLS and must
+ * never be sent to the browser or mobile application.
  */
-const supabaseAdmin = createClient(
-  env.SUPABASE_URL || '',
-  env.SUPABASE_SECRET_KEY || ''
-);
+const supabaseAdmin = createClient(supabaseUrl, secretKey);
 
 module.exports = { supabase, supabaseAdmin };
