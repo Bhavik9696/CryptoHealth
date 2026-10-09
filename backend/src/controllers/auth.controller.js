@@ -150,10 +150,35 @@ async function updateProfile(req, res, next) {
   }
 }
 
+async function forgotPassword(req, res, next) {
+  try {
+    const result = await authService.sendPasswordResetEmail(req.body.email);
+    return sendSuccess(res, { message: result.message });
+  } catch (error) { next(error); }
+}
+
+async function resetPassword(req, res, next) {
+  try {
+    const result = await authService.updatePassword(req.user.id, req.body.password);
+    await createAuditLog({
+      actorId: req.user.id,
+      actorRole: req.user.role,
+      action: 'PASSWORD_UPDATED',
+      resourceType: 'user',
+      resourceId: req.user.id,
+      result: AUDIT_RESULTS.SUCCESS,
+      ipAddress: req.ip,
+    });
+    return sendSuccess(res, { message: result.message });
+  } catch (error) { next(error); }
+}
+
 module.exports = {
   register,
   login,
   logout,
   getMe,
   updateProfile,
+  forgotPassword,
+  resetPassword,
 };
