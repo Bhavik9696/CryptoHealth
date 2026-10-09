@@ -16,6 +16,7 @@ const doctorRoutes = require('./routes/doctor.routes');
 const patientLinkRoutes = require('./routes/patientLink.routes');
 const reportRoutes = require('./routes/report.routes');
 const auditRoutes = require('./routes/audit.routes');
+const verificationRoutes = require('./routes/verification.routes');
 const { grantRouter, tokenRouter } = require('./routes/accessGrant.routes');
 
 const app = express();
@@ -50,6 +51,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/access-grants', grantRouter);
 app.use('/api/access-tokens', tokenRouter);
 app.use('/api/audit', auditRoutes);
+app.use('/api/verification', verificationRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
