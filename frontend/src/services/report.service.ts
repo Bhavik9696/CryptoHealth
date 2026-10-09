@@ -45,9 +45,25 @@ export const reportService = {
   },
 
   async getReportDownloadUrl(reportId: string): Promise<string> {
-    const response = await apiClient.get<ApiResponse<{ url: string }>>(
-      `/reports/${reportId}/download`
-    )
-    return response.data.data.url
+    // The API streams the authorized, decrypted file (not a public storage URL).
+    // Fetch with the Bearer token and create a temporary browser-only object URL.
+    const response = await apiClient.get<Blob>(`/reports/${reportId}/file`, {
+      responseType: 'blob',
+    })
+    return URL.createObjectURL(response.data)
+  },
+
+  async downloadReport(reportId: string, fileName: string): Promise<void> {
+    const response = await apiClient.get<Blob>(`/reports/${reportId}/file`, {
+      responseType: 'blob',
+    })
+    const url = URL.createObjectURL(response.data)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = fileName || 'medical-report'
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
   },
 }
