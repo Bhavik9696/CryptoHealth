@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -19,7 +19,18 @@ type FormValues = z.infer<typeof schema>
 export default function ResetPassword() {
   const navigate = useNavigate()
   const [done, setDone] = useState(false)
+  const [recoveryToken, setRecoveryToken] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.hash.slice(1))
+    if (params.get('type') === 'recovery' && params.get('access_token')) {
+      setRecoveryToken(params.get('access_token'))
+      // Remove credentials from the address bar immediately; keep the token
+      // in component state only until the password reset request completes.
+      window.history.replaceState(null, document.title, window.location.pathname + window.location.search)
+    }
+  }, [])
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -28,9 +39,13 @@ export default function ResetPassword() {
   async function onSubmit(values: FormValues) {
     setError(null)
     try {
-      await authService.updatePassword(values.password)
+      await authService.updatePassword(values.password, recoveryToken || undefined)
       setDone(true)
-      setTimeout(() => navigate('/dashboard'), 2000)
+      localStorage.removeItem('crypto_health_token')
+      localStorage.removeItem('crypto_health_user')
+      localStorage.removeItem('crypto_health_profile')
+      window.dispatchEvent(new Event('crypto_health_auth_change'))
+      setTimeout(() => navigate('/login'), 2000)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to reset password.')
     }
@@ -52,7 +67,7 @@ export default function ResetPassword() {
             <div className="text-center py-4">
               <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
               <h2 className="text-white font-semibold text-lg">Password updated!</h2>
-              <p className="text-slate-400 text-sm mt-1">Redirecting to dashboard...</p>
+              <p className="text-slate-400 text-sm mt-1">Redirecting to sign in...</p>
             </div>
           ) : (
             <>
