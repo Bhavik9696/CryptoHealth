@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Download, ShieldCheck, ExternalLink } from 'lucide-react'
@@ -18,6 +18,10 @@ export default function ReportDetails() {
   const queryClient = useQueryClient()
   const [viewerOpen, setViewerOpen] = useState(false)
   const [viewerUrl, setViewerUrl] = useState('')
+
+  useEffect(() => () => {
+    if (viewerUrl) URL.revokeObjectURL(viewerUrl)
+  }, [viewerUrl])
 
   const { data: report, isLoading, isError } = useQuery({
     queryKey: QUERY_KEYS.REPORT(reportId!),
@@ -122,8 +126,8 @@ export default function ReportDetails() {
           <button
             onClick={async () => {
               try {
-                const url = await reportService.getReportDownloadUrl(reportId!)
-                window.open(url, '_blank')
+                await reportService.downloadReport(reportId!, report.file_name)
+                toast.success('Download started')
               } catch {
                 toast.error('Download failed')
               }
