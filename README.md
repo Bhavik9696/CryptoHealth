@@ -1,3 +1,5 @@
+> **Repository setup note:** The current checkout contains a React/Vite portal in `frontend/`, the Express API in `backend/`, and a Flutter patient UI prototype in `mobile_app/`. The web portal and API have code paths for the core workflows, while the mobile app still uses sample UI data and is not connected to live accounts or records. See [SETUP.md](SETUP.md) for commands and configuration that match the actual repository tree. Do not use real patient data until backend configuration, authorization policies, key management, and security testing have been completed.
+
 # Crypto Health
 
 > **Secure, patient-controlled medical-record locker and sharing platform**
