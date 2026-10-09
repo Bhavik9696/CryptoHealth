@@ -102,11 +102,11 @@ export const authService = {
     return response.data
   },
 
-  async updatePassword(newPassword: string) {
-    // Password update goes through backend API
+  async updatePassword(newPassword: string, recoveryToken?: string) {
+    // Recovery JWTs are short-lived and passed in-memory, never stored in localStorage.
     const response = await apiClient.post('/auth/reset-password', {
       password: newPassword,
-    })
+    }, recoveryToken ? { headers: { Authorization: `Bearer ${recoveryToken}` } } : undefined)
     return response.data
   },
 
