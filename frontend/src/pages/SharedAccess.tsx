@@ -5,11 +5,9 @@ import { AlertTriangle, ArrowLeft, Download, FileText, ShieldCheck } from 'lucid
 import { toast } from 'sonner'
 import { sharingService } from '@/services/sharing.service'
 import { Loading } from '@/components/common/Loading'
-import { useAuth } from '@/context/AuthContext'
 
 export default function SharedAccess() {
   const { token = '' } = useParams<{ token: string }>()
-  const { profile } = useAuth()
   const [fileUrl, setFileUrl] = useState('')
   const [opening, setOpening] = useState(false)
   const { data, isLoading, isError, error } = useQuery({
