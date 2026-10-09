@@ -1,42 +1,64 @@
 const dotenv = require('dotenv');
 const path = require('path');
 
-// Load .env file
+// Runtime backend configuration lives in backend/.env.
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
-const requiredVars = [
-  'SUPABASE_URL',
-  'SUPABASE_PUBLISHABLE_KEY',
-  'SUPABASE_SECRET_KEY',
-  'JWT_SECRET',
-];
+function firstDefined(...values) {
+  return values.find((value) => typeof value === 'string' && value.trim().length > 0);
+}
 
-/**
- * Validate that all required environment variables are set.
- * Throws on missing vars in production, warns in development.
- */
 function validateEnv() {
-  const missing = requiredVars.filter((v) => !process.env[v]);
+  const missing = [];
+  if (!env.SUPABASE_URL) missing.push('SUPABASE_URL');
+  if (!env.SUPABASE_PUBLISHABLE_KEY) missing.push('SUPABASE_PUBLISHABLE_KEY (or SUPABASE_ANON_KEY)');
+  if (!env.SUPABASE_SECRET_KEY) missing.push('SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY)');
+  if (!env.MASTER_ENCRYPTION_KEY) missing.push('MASTER_ENCRYPTION_KEY (or ENCRYPTION_KEY)');
 
   if (missing.length > 0) {
-    const msg = `Missing required environment variables: ${missing.join(', ')}`;
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error(msg);
-    }
-    console.warn(`⚠️  ${msg}`);
+    const message = `Missing required environment variables: ${missing.join(', ')}`;
+    if (env.NODE_ENV === 'production') throw new Error(message);
+    console.warn(`[CryptoHealth config] ${message}`);
+  }
+
+  if (env.MASTER_ENCRYPTION_KEY && !/^[0-9a-f]{64}$/i.test(env.MASTER_ENCRYPTION_KEY)) {
+    throw new Error('MASTER_ENCRYPTION_KEY must be a 64-character hex string (32 bytes).');
   }
 }
 
+const corsOrigins = firstDefined(
+  process.env.CORS_ORIGINS,
+  process.env.FRONTEND_URL,
+  'http://localhost:5173,http://localhost:3000',
+)
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 const env = {
-  PORT: parseInt(process.env.PORT, 10) || 5000,
+  PORT: Number.parseInt(process.env.PORT || '5000', 10) || 5000,
   NODE_ENV: process.env.NODE_ENV || 'development',
   SUPABASE_URL: process.env.SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY,
-  SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
+  SUPABASE_PUBLISHABLE_KEY: firstDefined(
+    process.env.SUPABASE_PUBLISHABLE_KEY,
+    process.env.SUPABASE_ANON_KEY,
+  ),
+  SUPABASE_SECRET_KEY: firstDefined(
+    process.env.SUPABASE_SECRET_KEY,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  ),
   JWT_SECRET: process.env.JWT_SECRET,
-  STORAGE_BUCKET: process.env.STORAGE_BUCKET || 'medical-reports',
-  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
-  MASTER_ENCRYPTION_KEY: process.env.MASTER_ENCRYPTION_KEY,
+  STORAGE_BUCKET: firstDefined(
+    process.env.STORAGE_BUCKET,
+    process.env.SUPABASE_STORAGE_BUCKET,
+    'medical-reports',
+  ),
+  // The cors package accepts an array of allowed origins.
+  FRONTEND_URL: corsOrigins,
+  MASTER_ENCRYPTION_KEY: firstDefined(
+    process.env.MASTER_ENCRYPTION_KEY,
+    process.env.ENCRYPTION_KEY,
+  ),
 };
 
 module.exports = { env, validateEnv };
