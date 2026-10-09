@@ -23,10 +23,11 @@ export const reportService = {
   },
 
   async getPatientReports(patientId: string): Promise<MedicalReport[]> {
-    const response = await apiClient.get<PaginatedResponse<MedicalReport>>(
+    const response = await apiClient.get<ApiResponse<{ reports: MedicalReport[]; pagination: unknown }>>(
       `/patients/${patientId}/reports`
     )
-    return response.data.data
+    const payload = response.data.data
+    return Array.isArray(payload) ? payload : (payload?.reports ?? [])
   },
 
   async uploadReport(
