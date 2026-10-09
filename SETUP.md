@@ -15,7 +15,7 @@ This guide reflects the current repository layout. The project has one React/Vit
 2. Apply the SQL migrations from `backend/supabase/migrations/` in order, checking any project-specific migration state first.
 3. Create a **private** Storage bucket named `medical-reports` (or configure another bucket).
 4. Review row-level security policies and the roles/profile creation flow before adding real users.
-5. Copy `backend/.env.example` to `backend/.env` and provide your project values.
+5. Copy `backend/.env.example` to `backend/.env` and provide your project values. In Supabase Auth settings, add the configured `PASSWORD_RESET_REDIRECT_URL` (default: the first CORS origin plus `/reset-password`) to the allowed redirect URLs.
 
 The backend accepts either the current names `SUPABASE_PUBLISHABLE_KEY` / `SUPABASE_SECRET_KEY` or the compatible names `SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY`. Keep every secret in the backend environment only.
 
@@ -38,7 +38,7 @@ npm run dev
 
 Health check: `http://localhost:5000/api/health`
 
-The backend currently depends on Supabase configuration for live authentication and data features. A missing local configuration may allow the server to start in development, but protected API operations will not work until the configuration is completed.
+The backend can start locally with placeholder Supabase clients so `/api/health` remains usable before setup. Live authentication and data operations require real Supabase URL/keys, migrations, Storage bucket, and correct redirect allow-list configuration.
 
 ## 3. Start the web portal
 
