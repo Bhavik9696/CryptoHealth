@@ -129,7 +129,7 @@ export default function Sharing() {
                       <div className="flex items-center gap-3">
                         {s.status === 'ACTIVE' && (
                           <>
-                            <button onClick={() => setQrShare(s)} className="text-teal-600 hover:text-teal-700 text-xs font-medium transition-colors">QR</button>
+                            {s.access_token && <button onClick={() => setQrShare(s)} className="text-teal-600 hover:text-teal-700 text-xs font-medium transition-colors">QR</button>}
                             <button onClick={() => setRevokeTarget(s)} className="text-red-600 hover:text-red-700 text-xs font-medium transition-colors">Revoke</button>
                           </>
                         )}
