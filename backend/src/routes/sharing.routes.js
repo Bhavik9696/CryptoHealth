@@ -14,6 +14,7 @@ const { sensitiveLimiter } = require('../middleware/rateLimiter');
 const { ROLES, AUDIT_ACTIONS, AUDIT_RESULTS } = require('../utils/constants');
 const { BadRequestError, ForbiddenError, NotFoundError } = require('../utils/errors');
 const { decryptBuffer } = require('../crypto/envelopeEncryption');
+const { hashPayload, verifySignature } = require('../crypto/signatures');
 const { createAuditLog } = require('../services/audit.service');
 const accessGrantService = require('../services/accessGrant.service');
 
@@ -150,7 +151,7 @@ router.get('/:token/file', sensitiveLimiter, ...providerOnly, async (req, res, n
 
     const { data: report, error: reportError } = await supabaseAdmin
       .from('medical_reports')
-      .select('id, file_path, file_name, file_size, mime_type, file_hash, encryption_metadata, status')
+      .select('id, patient_id, hospital_id, signing_hospital_id, report_type, file_path, file_name, file_size, mime_type, file_hash, encryption_metadata, signature, signed_payload_hash, status')
       .eq('id', reportId)
       .maybeSingle();
     if (reportError || !report || report.status === 'DELETED' || report.status === 'REVOKED') {
@@ -167,6 +168,32 @@ router.get('/:token/file', sensitiveLimiter, ...providerOnly, async (req, res, n
     const plaintext = decryptBuffer(ciphertext, report.encryption_metadata, env.MASTER_ENCRYPTION_KEY);
     const actualHash = crypto.createHash('sha256').update(plaintext).digest('hex');
     if (actualHash !== report.file_hash) throw new Error('Report integrity check failed');
+
+    const signingHospitalId = report.signing_hospital_id || report.hospital_id;
+    const { data: issuer } = await supabaseAdmin
+      .from('hospitals')
+      .select('name, signing_public_key')
+      .eq('id', signingHospitalId)
+      .maybeSingle();
+    const payload = {
+      report_id: report.id,
+      patient_id: report.patient_id,
+      hospital_id: signingHospitalId,
+      report_type: report.report_type,
+      file_name: report.file_name,
+      file_size: Number(report.file_size),
+      mime_type: report.mime_type,
+      file_hash: report.file_hash,
+    };
+    const payloadHash = hashPayload(payload).toString('base64');
+    const signatureValid = !!(
+      report.signed_payload_hash &&
+      payloadHash === report.signed_payload_hash &&
+      report.signature &&
+      issuer?.signing_public_key &&
+      verifySignature(report.signature, report.signed_payload_hash, issuer.signing_public_key)
+    );
+    if (!signatureValid) throw new Error('Report issuer signature verification failed');
 
     const isDownload = result.grant.scope === 'download';
     const fileName = String(report.file_name || 'medical-report').replace(/[\r\n"]/g, '_');
